@@ -1955,7 +1955,9 @@ typedef struct cgEffects_s {
 	fxHandle_t forceDrainWideJaPRO;//japro
 	fxHandle_t forceDrained;
 
+	fxHandle_t healFX;
 	fxHandle_t heal2FX;
+	fxHandle_t rage2FX;
 
 	//TURRET
 	fxHandle_t turretShotEffect;

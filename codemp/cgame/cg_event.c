@@ -47,7 +47,7 @@ extern int cg_siegeDeathDelay;
 extern int cg_vehicleAmmoWarning;
 extern int cg_vehicleAmmoWarningTime;
 
-//I know, not siege, but...
+//I know, not siege, but... 
 typedef enum
 {
 	TAUNT_TAUNT = 0,
@@ -1486,6 +1486,7 @@ static qboolean CG_ProximityCheck(vec3_t pos1, vec3_t pos2) { //Returns qtrue if
 }
 
 extern index_for_heal;
+extern index_for_rage;
 
 /*
 ==============
@@ -3719,6 +3720,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				}
 			}
 
+			vec3_t notMoving = { 0, 0, 0 };
 			if (es->eventParm == index_for_heal)  //index taken from CG_RegisterSounds in cg_main.c
 			{
 				float heal_x = es->pos.trBase[0];
@@ -3768,15 +3770,107 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				{
 					cent = &cg_entities[closestClientIndex];
 
-					vec3_t healedClient;
-					VectorCopy(cent->lerpOrigin, healedClient);
+					if (VectorCompare(cent->playerState->velocity, notMoving))
+					{
+						vec3_t healedClient;
+						VectorCopy(cent->lerpOrigin, healedClient);
 
-					vec3_t dir = { 0, 0, 1 };
+						float animLen = BG_AnimLength(0, (animNumber_t)BOTH_FORCEHEAL_START);
+						float animLenHealQuick = BG_AnimLength(0, (animNumber_t)BOTH_FORCEHEAL_QUICK);
+						int boltHeal = trap->G2API_AddBolt(cent->ghoul2, 0, "pelvis");
+						int boltHealQuick = trap->G2API_AddBolt(cent->ghoul2, 0, "lhand");
 
-					trap->FX_PlayEffectID(cgs.effects.heal2FX, healedClient, dir, -1, -1, qfalse);
+						//if (cent->playerState->fd.forcePowerLevel[FP_HEAL] == FORCE_LEVEL_3)
+						//{
+						//	trap->FX_PlayBoltedEffectID(cgs.effects.heal2FX, healedClient, cent->ghoul2, boltHeal, cent->currentState.clientNum, 0, animLen, qfalse); //Slider just spawns two of them..
+						//	trap->FX_PlayBoltedEffectID(cgs.effects.heal2FX, healedClient, cent->ghoul2, boltHeal, cent->currentState.clientNum, 0, animLen, qfalse);
+						//}
+						/*else if (cent->playerState->fd.forcePowerLevel[FP_HEAL] == FORCE_LEVEL_2 ||
+							cent->playerState->fd.forcePowerLevel[FP_HEAL] == FORCE_LEVEL_1)*/
+						//else if(cg.snap->ps.fd.forcePowerLevel[FP_HEAL] == FORCE_LEVEL_2 || // None of these ways give us access to the forcedata hm..
+						//		cg.snap->ps.fd.forcePowerLevel[FP_HEAL] == FORCE_LEVEL_3) // Maybe we have to move this to w_force.c somehow						
+						if (cg.predictedPlayerState.fd.forcePowerLevel[FP_HEAL] == FORCE_LEVEL_3) // WHY DOES NONE OF THIS SHIT GIVE US ACCESS TO THE FUCKING GOD FORSAKEN FORCEDATA?!
+						{
+							trap->FX_PlayBoltedEffectID(cgs.effects.heal2FX, healedClient, cent->ghoul2, boltHeal, cent->currentState.clientNum, 0, animLen, qfalse); //Slider just spawns two of them..
+							trap->FX_PlayBoltedEffectID(cgs.effects.heal2FX, healedClient, cent->ghoul2, boltHeal, cent->currentState.clientNum, 0, animLen, qfalse);
+						}
+						else if (cg.predictedPlayerState.fd.forcePowerLevel[FP_HEAL] == FORCE_LEVEL_2 ||
+							cg.predictedPlayerState.fd.forcePowerLevel[FP_HEAL] == FORCE_LEVEL_1)
+						{
+							
+							trap->FX_PlayBoltedEffectID(cgs.effects.healFX, healedClient, cent->ghoul2, boltHealQuick, cent->currentState.clientNum, 0, animLen, qfalse);
+							trap->FX_PlayBoltedEffectID(cgs.effects.healFX, healedClient, cent->ghoul2, boltHealQuick, cent->currentState.clientNum, 0, animLen, qfalse);
+							trap->FX_PlayBoltedEffectID(cgs.effects.healFX, healedClient, cent->ghoul2, boltHealQuick, cent->currentState.clientNum, 0, animLen, qfalse);
+						}
+					}
+					
 				}
 
 
+			}
+
+			if (es->eventParm == index_for_rage)  //index taken from CG_RegisterSounds in cg_main.c
+			{ 
+
+				float rage_x = es->pos.trBase[0];
+				float rage_y = es->pos.trBase[1];
+				float rage_z = es->pos.trBase[2];
+				//so now we know that heal was played and we know where 
+				//i want to cycle through all the clients, and find the closest one
+
+
+				float closestDistanceSquared = FLT_MAX;
+				int closestClientIndex = -1;
+				float client_x;
+				float client_y;
+				float client_z;
+				centity_t* cent;
+
+				for (int i = 0; i <= MAX_CLIENTS; i++)
+				{
+					cent = &cg_entities[i];
+					client_x = cent->nextState.pos.trBase[0];
+					client_y = cent->nextState.pos.trBase[1];
+					client_z = cent->nextState.pos.trBase[2];
+
+
+					if (client_x == 0 && client_y == 0 && client_z == 0)
+					{
+						continue;
+					}
+
+
+					// Calculate the squared distance between the heal position and the client's position.
+					float dx = client_x - rage_x;
+					float dy = client_y - rage_y;
+					float dz = client_z - rage_z;
+					float distSquared = dx * dx + dy * dy + dz * dz;
+
+					// Update the closest client if this one is nearer.
+					if (distSquared < closestDistanceSquared)
+					{
+						closestDistanceSquared = distSquared;
+						closestClientIndex = i;
+					}
+
+				}
+
+				if (closestClientIndex != -1)
+				{
+					cent = &cg_entities[closestClientIndex];
+
+					if (VectorCompare(cent->playerState->velocity, notMoving))
+					{
+						vec3_t rageClient;
+						VectorCopy(cent->lerpOrigin, rageClient);
+						float animLen = BG_AnimLength(0, (animNumber_t)BOTH_FORCE_RAGE);
+						int bolt = trap->G2API_AddBolt(cent->ghoul2, 0, "pelvis");
+						//Is relativ just plays the fxFile once ?
+						//If its not relativ it plays the fxFile for duration time
+						trap->FX_PlayBoltedEffectID(cgs.effects.rage2FX, rageClient, cent->ghoul2, bolt, cent->currentState.clientNum, 0, animLen, qfalse);
+					}
+					
+				}
 			}
 		break;
 
