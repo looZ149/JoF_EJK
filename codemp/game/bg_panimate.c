@@ -2970,6 +2970,7 @@ void BG_SetAnim(playerState_t *ps, animation_t *animations, int setAnimParts,int
 			anim == BOTH_WALKBACK1 ||
 			anim == BOTH_RUN1)
 		{ //hack for droids
+			//LOOK HERE
 			anim = BOTH_WALK2;
 		}
 
