@@ -3770,6 +3770,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				{
 					cent = &cg_entities[closestClientIndex];
 
+
 					if (VectorCompare(cent->playerState->velocity, notMoving))
 					{
 						vec3_t healedClient;
@@ -3853,6 +3854,15 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 						closestClientIndex = i;
 					}
 
+
+					if(VectorLength(cent->playerState->velocity) == 0.0)
+					{
+						vec3_t healedClient;
+						VectorCopy(cent->lerpOrigin, healedClient);
+						vec3_t dir = { 0, 0, 1 };
+
+						trap->FX_PlayEffectID(cgs.effects.heal2FX, healedClient, dir, -1, -1, qfalse);
+					}
 				}
 
 				if (closestClientIndex != -1)
@@ -3872,7 +3882,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 					
 				}
 			}
-		break;
+	break;
 
 	case EV_GLOBAL_SOUND:	// play from the player's head so it never diminishes
 		DEBUGNAME("EV_GLOBAL_SOUND");
@@ -4159,7 +4169,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		trap->Error( ERR_DROP, "Unknown event: %i", event );
 		break;
 	}
-
 }
 
 
