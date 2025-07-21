@@ -1184,32 +1184,44 @@ void ForceHeal( gentity_t *self )
 	if (self->client->ps.fd.forcePowerLevel[FP_HEAL] == FORCE_LEVEL_3)
 	{
 		self->health += 25; //This was 50, but that angered the Balance God.
-
+		
 		if (self->health > self->client->ps.stats[STAT_MAX_HEALTH])
 		{
 			self->health = self->client->ps.stats[STAT_MAX_HEALTH];
 		}
 		BG_ForcePowerDrain( &self->client->ps, FP_HEAL, 0 );
+		if (VectorLength(self->playerState->velocity) == 0.0)
+		{
+			PM_SetAnim(SETANIM_BOTH, BOTH_FORCEHEAL_START, SETANIM_FLAG_HOLD); // FORCE HEAL, WHICH ANIM? - QUICK is a seperate one - START IS DEFAULT
+		}
 	}
 	else if (self->client->ps.fd.forcePowerLevel[FP_HEAL] == FORCE_LEVEL_2)
 	{
 		self->health += 10;
-
+		
 		if (self->health > self->client->ps.stats[STAT_MAX_HEALTH])
 		{
 			self->health = self->client->ps.stats[STAT_MAX_HEALTH];
 		}
 		BG_ForcePowerDrain( &self->client->ps, FP_HEAL, 0 );
+		if (VectorLength(self->playerState->velocity) == 0.0)
+		{
+			PM_SetAnim(SETANIM_BOTH, BOTH_FORCEHEAL_QUICK, SETANIM_FLAG_HOLD); // FORCE HEAL, WHICH ANIM? - QUICK is a seperate one - START IS DEFAULT
+		}
 	}
 	else
 	{
 		self->health += 5;
-
+		
 		if (self->health > self->client->ps.stats[STAT_MAX_HEALTH])
 		{
 			self->health = self->client->ps.stats[STAT_MAX_HEALTH];
 		}
 		BG_ForcePowerDrain( &self->client->ps, FP_HEAL, 0 );
+		if (VectorLength(self->playerState->velocity) == 0.0)
+		{
+			PM_SetAnim(SETANIM_BOTH, BOTH_FORCEHEAL_QUICK, SETANIM_FLAG_HOLD); // FORCE HEAL, WHICH ANIM? - QUICK is a seperate one - START IS DEFAULT
+		}
 	}
 	/*
 	else
@@ -1218,6 +1230,7 @@ void ForceHeal( gentity_t *self )
 	}
 	*/
 	//NOTE: Decided to make all levels instant.
+
 
 	G_Sound( self, CHAN_ITEM, G_SoundIndex("sound/weapons/force/heal.wav") );
 }
@@ -1633,70 +1646,70 @@ void ForceProtect( gentity_t *self )
 			WP_ForcePowerStop( self, FP_ABSORB );
 		}
 	}
-//JAPRO - Serverside - Allow force combos - End
+	//JAPRO - Serverside - Allow force combos - End
 
 	self->client->ps.forceAllowDeactivateTime = level.time + 1500;
 
-	WP_ForcePowerStart( self, FP_PROTECT, 0 );
+	WP_ForcePowerStart(self, FP_PROTECT, 0);
 	G_PreDefSound(self->client->ps.origin, PDSOUND_PROTECT);
-	G_Sound( self, TRACK_CHANNEL_3, protectLoopSound );
+	G_Sound(self, TRACK_CHANNEL_3, protectLoopSound);
 }
 
-void ForceAbsorb( gentity_t *self )
+void ForceAbsorb(gentity_t* self)
 {
-	if ( self->health <= 0 )
+	if (self->health <= 0)
 	{
 		return;
 	}
 
 	if (self->client->ps.forceAllowDeactivateTime < level.time &&
-		(self->client->ps.fd.forcePowersActive & (1 << FP_ABSORB)) )
+		(self->client->ps.fd.forcePowersActive & (1 << FP_ABSORB)))
 	{
-		WP_ForcePowerStop( self, FP_ABSORB );
+		WP_ForcePowerStop(self, FP_ABSORB);
 		return;
 	}
 
-	if ( !WP_ForcePowerUsable( self, FP_ABSORB ) )
+	if (!WP_ForcePowerUsable(self, FP_ABSORB))
 	{
 		return;
 	}
 
-//JAPRO - Serverside - Allow force combos - Start
+	//JAPRO - Serverside - Allow force combos - Start
 	if (!(g_tweakForce.integer & FT_FORCECOMBO))
 	{// Make sure to turn off Force Rage and Force Protection.
-		if (self->client->ps.fd.forcePowersActive & (1 << FP_RAGE) )
+		if (self->client->ps.fd.forcePowersActive & (1 << FP_RAGE))
 		{
-			WP_ForcePowerStop( self, FP_RAGE );
+			WP_ForcePowerStop(self, FP_RAGE);
 		}
-		if (self->client->ps.fd.forcePowersActive & (1 << FP_PROTECT) )
+		if (self->client->ps.fd.forcePowersActive & (1 << FP_PROTECT))
 		{
-			WP_ForcePowerStop( self, FP_PROTECT );
+			WP_ForcePowerStop(self, FP_PROTECT);
 		}
 	}
-//JAPRO - Serverside - Allow force combos - End
+	//JAPRO - Serverside - Allow force combos - End
 
 	self->client->ps.forceAllowDeactivateTime = level.time + 1500;
 
-	WP_ForcePowerStart( self, FP_ABSORB, 0 );
+	WP_ForcePowerStart(self, FP_ABSORB, 0);
 	G_PreDefSound(self->client->ps.origin, PDSOUND_ABSORB);
-	G_Sound( self, TRACK_CHANNEL_3, absorbLoopSound );
+	G_Sound(self, TRACK_CHANNEL_3, absorbLoopSound);
 }
 
-void ForceRage( gentity_t *self )
+void ForceRage(gentity_t* self)
 {
-	if ( self->health <= 0 )
+	if (self->health <= 0)
 	{
 		return;
 	}
-
+	
 	if (self->client->ps.forceAllowDeactivateTime < level.time &&
-		(self->client->ps.fd.forcePowersActive & (1 << FP_RAGE)) )
+		(self->client->ps.fd.forcePowersActive & (1 << FP_RAGE)))
 	{
-		WP_ForcePowerStop( self, FP_RAGE );
+		WP_ForcePowerStop(self, FP_RAGE);
 		return;
 	}
 
-	if ( !WP_ForcePowerUsable( self, FP_RAGE ) )
+	if (!WP_ForcePowerUsable(self, FP_RAGE))
 	{
 		return;
 	}
@@ -1711,24 +1724,30 @@ void ForceRage( gentity_t *self )
 		return;
 	}
 
-//JAPRO - Serverside - Allow force combos - Start
-	//Make sure to turn off Force Protection and Force Absorb.
+	//JAPRO - Serverside - Allow force combos - Start
+		//Make sure to turn off Force Protection and Force Absorb.
 	if (!(g_tweakForce.integer & FT_FORCECOMBO))
 	{
-		if (self->client->ps.fd.forcePowersActive & (1 << FP_PROTECT) )
+		if (self->client->ps.fd.forcePowersActive & (1 << FP_PROTECT))
 		{
-			WP_ForcePowerStop( self, FP_PROTECT );
+			WP_ForcePowerStop(self, FP_PROTECT);
 		}
-		if (self->client->ps.fd.forcePowersActive & (1 << FP_ABSORB) )
+		if (self->client->ps.fd.forcePowersActive & (1 << FP_ABSORB))
 		{
-			WP_ForcePowerStop( self, FP_ABSORB );
+			WP_ForcePowerStop(self, FP_ABSORB);
 		}
 	}
-//JAPRO - Serverside - Allow force combos - End
+	//JAPRO - Serverside - Allow force combos - End
 
 	self->client->ps.forceAllowDeactivateTime = level.time + 1500;
 
-	WP_ForcePowerStart( self, FP_RAGE, 0 );
+	WP_ForcePowerStart(self, FP_RAGE, 0);
+	
+	if (VectorLength(self->playerState->velocity) == 0.0)
+	{
+		PM_SetAnim(SETANIM_BOTH, BOTH_FORCE_RAGE, SETANIM_FLAG_HOLD);
+	}
+	
 
 	G_Sound( self, TRACK_CHANNEL_4, G_SoundIndex("sound/weapons/force/rage.wav") );
 	G_Sound( self, TRACK_CHANNEL_3, rageLoopSound );
