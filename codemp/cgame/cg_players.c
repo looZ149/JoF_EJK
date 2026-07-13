@@ -11916,15 +11916,14 @@ skipTrail:
 		AnglesToAxis( fAng, axis );
 
 		if ( realForceLev > FORCE_LEVEL_2 )
-		{//arc°
+		{//arc
 			//trap->FX_PlayEffectID( cgs.effects.forceLightningWide, efOrg, fxDir );
 			//trap->FX_PlayEntityEffectID(cgs.effects.forceDrainWide, efOrg, axis, cent->boltInfo, cent->currentState.number, -1, -1);
-			if (cp_pluginDisable.integer & JAPRO_PLUGIN_NEWDRAINEFX) // No matter the drainfx value, we use the japro fx if plugin is enabled
+			if (cg_drainFX.integer == 2)
 				trap->FX_PlayEntityEffectID(cgs.effects.forceDrainWideJaPRO, efOrg, axis, -1, -1, -1, -1);
-			else if(cg_drainFX.integer == 1 && !(cp_pluginDisable.integer & JAPRO_PLUGIN_NEWDRAINEFX)) {
+			else if (cg_drainFX.integer == 1)
 				trap->FX_PlayEntityEffectID(cgs.effects.forceDrainWide, efOrg, axis, -1, -1, -1, -1);
-			}
-		} 
+		}
 		else
 		{//line
 			//trap->FX_PlayEffectID( cgs.effects.forceLightning, efOrg, fxDir );
