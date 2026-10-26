@@ -755,6 +755,12 @@ bool CLine::Cull( void )
 {
 	vec3_t	dir;
 
+	if (mFlags & FX_PLAYER_VIEW)
+	{
+		// this will be drawn as a 2D effect so don't cull it
+		return false;
+	}
+
 	VectorSubtract( mOrigin1, theFxHelper.refdef->vieworg, dir );
 
 	//Check if it's in front of the viewer

@@ -1,5 +1,8 @@
 #pragma once
 
+// gsl-lite.h includes <cstdint> inside namespace gsl, which breaks compilers
+// (GCC 13+, recent clang) whose other headers no longer include it first.
+#include <cstdint>
 // central point of include to simplify possible future swap for Microsoft's implementation
 #include <gsl/gsl-lite.h>
 
@@ -10,15 +13,15 @@
 // The workaround is using CSTRING_VIEW("literal") instead of "literal"_v (for the time being).
 # define CSTRING_VIEW(x) vs2013hack_cstring_view_literal(x)
 template< int length >
-inline gsl::cstring_span vs2013hack_cstring_view_literal( const char (&str)[length] )
+inline gsl::cstring_view vs2013hack_cstring_view_literal( const char (&str)[length] )
 {
 	static_assert( length > 0, "CSTRING_VIEW expects a string literal argument." );
 	return{ str, str + length - 1 };
 }
 #else
 # define CSTRING_VIEW(x) x ## _v
-/** gsl::cstring_span from string literal (without null-termination) */
-inline gsl::cstring_span operator"" _v( const char* str, std::size_t length )
+/** gsl::cstring_view from string literal (without null-termination) */
+inline gsl::cstring_view operator"" _v( const char* str, std::size_t length )
 {
 	return{ str, str + length };
 }
